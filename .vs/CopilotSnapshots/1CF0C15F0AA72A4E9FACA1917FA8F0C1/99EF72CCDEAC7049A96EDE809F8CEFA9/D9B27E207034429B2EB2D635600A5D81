@@ -1,0 +1,465 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+// P/Invoke ve Memory Yönetimi için Statik Sınıf
+public static class MemoryHelper
+{
+    // kernel32.dll dari P/Invoke Deklarasyonları
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CloseHandle(IntPtr hObject);
+
+    // Sabitler
+    public const uint PROCESS_ALL_ACCESS = 0x1F0FFF;
+    public const uint PROCESS_VM_WRITE = 0x0020;
+    public const uint PROCESS_VM_READ = 0x0010;
+
+    // Bellek yazma fonksiyonu (Integer değer için)
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, int value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    // Bellek yazma fonksiyonu (Float değer için)
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, float value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    // Bellek yazma fonksiyonu (Byte değer için)
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, byte value)
+    {
+        byte[] buffer = new byte[] { value };
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    // Bellek okuma fonksiyonu (Integer değer için)
+    public static int ReadMemory(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToInt32(buffer, 0);
+    }
+
+    // Bellek okuma fonksiyonu (Float değer için)
+    public static float ReadMemoryFloat(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToSingle(buffer, 0);
+    }
+
+    // Bellek okuma fonksiyonu (Byte değer için)
+    public static byte ReadMemoryByte(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[1];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 1, out bytesRead);
+        return buffer[0];
+    }
+}
+
+namespace cheat
+{
+    public partial class Form1 : Form
+    {
+        private IntPtr processHandle = IntPtr.Zero;
+        private int targetProcessId = -1;
+        private const string TargetProcessName = "gta-sa";
+
+        // Bellek Adresleri
+        private readonly IntPtr addr_Money = new IntPtr(0xB7CE50);              // [int] Para
+        private readonly IntPtr addr_GameSpeed = new IntPtr(0xB7CB64);          // [float] Oyun hızı (percent)
+        private readonly IntPtr addr_InfiniteRun = new IntPtr(0xB7CEE4);        // [byte] Sonsuz koşma
+        private readonly IntPtr addr_Fireproof = new IntPtr(0xB7CEE6);          // [byte] Ateşe dayanıklı
+        private readonly IntPtr addr_PayNSprayFree = new IntPtr(0x96C009);      // [byte] Pay N Spray ücretsiz
+
+        // Yeni: Görev zamanlayıcı adresleri (dword)
+        private readonly IntPtr addr_TaxiTimer = new IntPtr(0xA5197C);          // [dword] Taxi driver timer (ms)
+        private readonly IntPtr addr_TipBarTimer = new IntPtr(0xA51980);        // [dword] Tip bar timer (s)
+        private readonly IntPtr addr_ParamedicTimer = new IntPtr(0xA519A8);     // [dword] Paramedic timer (ms)
+        private readonly IntPtr addr_FirefighterTimer = new IntPtr(0xA519BC);   // [dword] Firefighter timer (ms)
+        private readonly IntPtr addr_VigilanteTimer = new IntPtr(0xA519D8);     // [dword] Vigilante timer (ms)
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Set window title to current Windows user
+            this.Text = $"{Environment.UserName} - GTA:SA Mod Menüsü";
+
+            MessageBox.Show(
+                "Kadir - GTA:SA Mod Menüsü\n\n" +
+                "Özellikler:\n" +
+                "• Para Değiştirme\n" +
+                "• Oyun Hızını Kontrol Etme (kat olarak, örn: 1 = normal, 2 = 2x)\n" +
+                "• Sonsuz Koşma\n" +
+                "• Ateşe Dayanıklı Ol\n" +
+                "• Pay N Spray Ücretsiz\n" +
+                "• Görev Zamanlayıcıları (saniye olarak giriniz)\n\n" +
+                "NOT: Yönetici haklarıyla çalıştırın.",
+                "Hoş Geldiniz"
+            );
+            UpdateStatus(false);
+
+            // Opsiyonel: başlangıçta bazı textboxlara örnek değerler koy
+            try
+            {
+                textBox_taxiTimer.Text = "60"; // saniye
+                textBox_tipBarTimer.Text = "10";  // saniye
+                textBox_paramedicTimer.Text = "60";
+                textBox_firefighterTimer.Text = "60";
+                textBox_vigilanteTimer.Text = "60";
+                textBox_speed.Text = "1"; // kat
+            }
+            catch
+            {
+                // Designer ile ilşkili kontrol yoksa hata yoksay
+            }
+        }
+
+        private void UpdateStatus(bool connected)
+        {
+            if (connected)
+            {
+                statusLabel.Text = $"Durum: Bağlı ✓ (PID: {targetProcessId})";
+                statusLabel.ForeColor = System.Drawing.Color.Green;
+            }
+            else
+            {
+                statusLabel.Text = "Durum: Bağlı Değil ✗";
+                statusLabel.ForeColor = System.Drawing.Color.Red;
+            }
+        }
+
+        // ========== PARA TAB ==========
+        private void ReadMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            int value = MemoryHelper.ReadMemory(processHandle, addr_Money);
+            MessageBox.Show($"Mevcut Para: {value}\n(Hex: 0x{value:X})", "Sonuç");
+        }
+
+        private void WriteMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            if (!int.TryParse(textBox_money.Text, out int newValue))
+            {
+                MessageBox.Show("Lütfen geçerli bir sayı giriniz!", "Hata");
+                return;
+            }
+
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_Money, newValue);
+
+            if (success)
+            {
+                MessageBox.Show($"Para Yazıldı!\nYeni Değer: {newValue}", "Başarılı");
+            }
+            else
+            {
+                MessageBox.Show("Yazma Başarısız! Hata: " + Marshal.GetLastWin32Error(), "Hata");
+            }
+        }
+
+        // ========== OYUN HIZI TAB ==========
+        private void btn_readSpeed_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            float percent = MemoryHelper.ReadMemoryFloat(processHandle, addr_GameSpeed);
+            float multiplier = percent / 100f; // convert percent to multiplier
+            MessageBox.Show($"Mevcut Oyun Hızı: x{multiplier}", "Sonuç");
+        }
+
+        private void btn_setSpeed_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            if (!float.TryParse(textBox_speed.Text, out float multiplier))
+            {
+                MessageBox.Show("Lütfen geçerli bir kat (ör. 1, 2, 3) giriniz!", "Hata");
+                return;
+            }
+
+            float percent = multiplier * 100f; // convert multiplier to percent
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_GameSpeed, percent);
+
+            if (success)
+            {
+                MessageBox.Show($"Oyun Hızı Ayarlandı!\nYeni Değer: x{multiplier}", "Başarılı");
+            }
+            else
+            {
+                MessageBox.Show("Yazma Başarısız! Hata: " + Marshal.GetLastWin32Error(), "Hata");
+            }
+        }
+
+        // ========== YETENEKLER TAB ==========
+        private void btn_applyAbilities_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            string result = "";
+
+            // Sonsuz Koşma
+            if (checkbox_infinite_run.Checked)
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_InfiniteRun, (byte)1);
+                result += success ? "✓ Sonsuz Koşma Aktif\n" : "✗ Sonsuz Koşma Başarısız\n";
+            }
+            else
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_InfiniteRun, (byte)0);
+                result += success ? "✓ Sonsuz Koşma Pasif\n" : "✗ Sonsuz Koşma Başarısız\n";
+            }
+
+            // Ateşe Dayanıklı
+            if (checkbox_fireproof.Checked)
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_Fireproof, (byte)1);
+                result += success ? "✓ Ateşe Dayanıklı Aktif\n" : "✗ Ateşe Dayanıklı Başarısız\n";
+            }
+            else
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_Fireproof, (byte)0);
+                result += success ? "✓ Ateşe Dayanıklı Pasif\n" : "✗ Ateşe Dayanıklı Başarısız\n";
+            }
+
+            // Pay N Spray Ücretsiz
+            if (checkbox_paynspray_free.Checked)
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_PayNSprayFree, (byte)1);
+                result += success ? "✓ Pay N Spray Ücretsiz Aktif\n" : "✗ Pay N Spray Ücretsiz Başarısız\n";
+            }
+            else
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_PayNSprayFree, (byte)0);
+                result += success ? "✓ Pay N Spray Ücretsiz Pasif\n" : "✗ Pay N Spray Ücretsiz Başarısız\n";
+            }
+
+            MessageBox.Show(result, "Yetenekler Uygulandı");
+        }
+
+        // ========== GÖREV ZAMANLAYICILARI TAB ==========
+        private void btn_readTaxi_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_TaxiTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Taxi Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setTaxi_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_taxiTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_TaxiTimer, newMs);
+            MessageBox.Show(success ? "Taxi zamanlayıcı ayarlandı." : "Taxi zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readTipBar_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueSec = MemoryHelper.ReadMemory(processHandle, addr_TipBarTimer);
+            MessageBox.Show($"Tip Bar Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setTipBar_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_tipBarTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_TipBarTimer, newSec);
+            MessageBox.Show(success ? "Tip Bar zamanlayıcısı ayarlandı." : "Tip Bar zamanlayıcısı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readParamedic_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_ParamedicTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Paramedic Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setParamedic_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_paramedicTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_ParamedicTimer, newMs);
+            MessageBox.Show(success ? "Paramedic zamanlayıcı ayarlandı." : "Paramedic zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readFirefighter_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_FirefighterTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Firefighter Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setFirefighter_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_firefighterTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_FirefighterTimer, newMs);
+            MessageBox.Show(success ? "Firefighter zamanlayıcı ayarlandı." : "Firefighter zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readVigilante_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_VigilanteTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Vigilante Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setVigilante_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_vigilanteTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_VigilanteTimer, newMs);
+            MessageBox.Show(success ? "Vigilante zamanlayıcı ayarlandı." : "Vigilante zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        // ========== BAĞLANTI ==========
+        private void ConnectBtn_Click(object sender, EventArgs e)
+        {
+            string processName = TargetProcessName;
+
+            Process[] processes = Process.GetProcessesByName(processName);
+
+            if (processes.Length == 0)
+            {
+                MessageBox.Show($"İşlem bulunamadı: {processName}.exe\nLütfen GTA:SA'nin çalıştığından emin olun.", "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            targetProcessId = processes[0].Id;
+            processHandle = MemoryHelper.OpenProcess(MemoryHelper.PROCESS_ALL_ACCESS, false, targetProcessId);
+
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("İşleme bağlanılamadı! Yönetici haklarına ihtiyacınız olabilir.\nHata Kodu: " + Marshal.GetLastWin32Error(), "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            MessageBox.Show($"Bağlanıldı!\nİşlem: {processes[0].ProcessName} (PID: {targetProcessId})", "Başarılı");
+            UpdateStatus(true);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (processHandle != IntPtr.Zero)
+            {
+                MemoryHelper.CloseHandle(processHandle);
+            }
+        }
+    }
+}

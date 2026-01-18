@@ -1,0 +1,600 @@
+﻿namespace cheat
+{
+    partial class Form1
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer üretilen kod
+
+        private void InitializeComponent()
+        {
+            this.ConnectBtn = new System.Windows.Forms.Button();
+            this.statusLabel = new System.Windows.Forms.Label();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabMoney = new System.Windows.Forms.TabPage();
+            this.label_money = new System.Windows.Forms.Label();
+            this.textBox_money = new System.Windows.Forms.TextBox();
+            this.btn_setMoney = new System.Windows.Forms.Button();
+            this.btn_readMoney = new System.Windows.Forms.Button();
+            this.tabGameSpeed = new System.Windows.Forms.TabPage();
+            this.label_speed = new System.Windows.Forms.Label();
+            this.textBox_speed = new System.Windows.Forms.TextBox();
+            this.btn_setSpeed = new System.Windows.Forms.Button();
+            this.btn_readSpeed = new System.Windows.Forms.Button();
+            this.tabAbilities = new System.Windows.Forms.TabPage();
+            this.checkbox_infinite_run = new System.Windows.Forms.CheckBox();
+            this.checkbox_fireproof = new System.Windows.Forms.CheckBox();
+            this.checkbox_paynspray_free = new System.Windows.Forms.CheckBox();
+            this.btn_applyAbilities = new System.Windows.Forms.Button();
+            this.tabMissions = new System.Windows.Forms.TabPage();
+            this.label_wanted = new System.Windows.Forms.Label();
+            this.textBox_wantedLevel = new System.Windows.Forms.TextBox();
+            this.btn_readWanted = new System.Windows.Forms.Button();
+            this.btn_setWanted = new System.Windows.Forms.Button();
+            this.label_maxWanted = new System.Windows.Forms.Label();
+            this.textBox_maxWantedLevel = new System.Windows.Forms.TextBox();
+            this.btn_readMaxWanted = new System.Windows.Forms.Button();
+            this.btn_setMaxWanted = new System.Windows.Forms.Button();
+            this.label_taxi = new System.Windows.Forms.Label();
+            this.textBox_taxiTimer = new System.Windows.Forms.TextBox();
+            this.btn_readTaxi = new System.Windows.Forms.Button();
+            this.btn_setTaxi = new System.Windows.Forms.Button();
+            this.label_tipbar = new System.Windows.Forms.Label();
+            this.textBox_tipBarTimer = new System.Windows.Forms.TextBox();
+            this.btn_readTipBar = new System.Windows.Forms.Button();
+            this.btn_setTipBar = new System.Windows.Forms.Button();
+            this.label_paramedic = new System.Windows.Forms.Label();
+            this.textBox_paramedicTimer = new System.Windows.Forms.TextBox();
+            this.btn_readParamedic = new System.Windows.Forms.Button();
+            this.btn_setParamedic = new System.Windows.Forms.Button();
+            this.label_firefighter = new System.Windows.Forms.Label();
+            this.textBox_firefighterTimer = new System.Windows.Forms.TextBox();
+            this.btn_readFirefighter = new System.Windows.Forms.Button();
+            this.btn_setFirefighter = new System.Windows.Forms.Button();
+            this.label_vigilante = new System.Windows.Forms.Label();
+            this.textBox_vigilanteTimer = new System.Windows.Forms.TextBox();
+            this.btn_readVigilante = new System.Windows.Forms.Button();
+            this.btn_setVigilante = new System.Windows.Forms.Button();
+            this.tabControl1.SuspendLayout();
+            this.tabMoney.SuspendLayout();
+            this.tabGameSpeed.SuspendLayout();
+            this.tabAbilities.SuspendLayout();
+            this.tabMissions.SuspendLayout();
+            this.SuspendLayout();
+
+            // ConnectBtn
+            this.ConnectBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.ConnectBtn.Location = new System.Drawing.Point(12, 12);
+            this.ConnectBtn.Name = "ConnectBtn";
+            this.ConnectBtn.Size = new System.Drawing.Size(120, 35);
+            this.ConnectBtn.TabIndex = 0;
+            this.ConnectBtn.Text = "Bağlan (GTA-SA)";
+            this.ConnectBtn.UseVisualStyleBackColor = true;
+            this.ConnectBtn.Click += new System.EventHandler(this.ConnectBtn_Click);
+
+            // statusLabel
+            this.statusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(150, 20);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(154, 13);
+            this.statusLabel.TabIndex = 1;
+            this.statusLabel.Text = "Durum: Bağlı Değil ?";
+            this.statusLabel.ForeColor = System.Drawing.Color.Red;
+            this.statusLabel.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+
+            // tabControl1
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Location = new System.Drawing.Point(12, 60);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(726, 378); // TabControl Büyütüldü
+            this.tabControl1.TabIndex = 2;
+            this.tabControl1.TabPages.AddRange(new System.Windows.Forms.TabPage[] { this.tabMoney, this.tabGameSpeed, this.tabAbilities, this.tabMissions });
+
+            // tabMoney
+            this.tabMoney.Controls.Add(this.btn_readMoney);
+            this.tabMoney.Controls.Add(this.btn_setMoney);
+            this.tabMoney.Controls.Add(this.textBox_money);
+            this.tabMoney.Controls.Add(this.label_money);
+            this.tabMoney.Location = new System.Drawing.Point(4, 22);
+            this.tabMoney.Name = "tabMoney";
+            this.tabMoney.Padding = new System.Windows.Forms.Padding(3);
+            this.tabMoney.Size = new System.Drawing.Size(718, 352);
+            this.tabMoney.TabIndex = 0;
+            this.tabMoney.Text = "Para";
+            this.tabMoney.UseVisualStyleBackColor = true;
+
+            // label_money
+            this.label_money.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_money.AutoSize = true;
+            this.label_money.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
+            this.label_money.Location = new System.Drawing.Point(20, 30);
+            this.label_money.Name = "label_money";
+            this.label_money.Size = new System.Drawing.Size(190, 18);
+            this.label_money.TabIndex = 0;
+            this.label_money.Text = "Para Miktarı Giriniz:";
+
+            // textBox_money
+            this.textBox_money.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_money.Location = new System.Drawing.Point(270, 30);
+            this.textBox_money.Name = "textBox_money";
+            this.textBox_money.Size = new System.Drawing.Size(420, 22);
+            this.textBox_money.TabIndex = 1;
+            this.textBox_money.Text = "1000000";
+
+            // btn_readMoney
+            this.btn_readMoney.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readMoney.Location = new System.Drawing.Point(480, 70);
+            this.btn_readMoney.Name = "btn_readMoney";
+            this.btn_readMoney.Size = new System.Drawing.Size(100, 35);
+            this.btn_readMoney.TabIndex = 2;
+            this.btn_readMoney.Text = "Oku";
+            this.btn_readMoney.UseVisualStyleBackColor = true;
+            this.btn_readMoney.Click += new System.EventHandler(this.ReadMemoryBtn_Click);
+
+            // btn_setMoney
+            this.btn_setMoney.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setMoney.Location = new System.Drawing.Point(590, 70);
+            this.btn_setMoney.Name = "btn_setMoney";
+            this.btn_setMoney.Size = new System.Drawing.Size(100, 35);
+            this.btn_setMoney.TabIndex = 3;
+            this.btn_setMoney.Text = "Uygula";
+            this.btn_setMoney.UseVisualStyleBackColor = true;
+            this.btn_setMoney.Click += new System.EventHandler(this.WriteMemoryBtn_Click);
+
+            // tabGameSpeed
+            this.tabGameSpeed.Controls.Add(this.btn_readSpeed);
+            this.tabGameSpeed.Controls.Add(this.btn_setSpeed);
+            this.tabGameSpeed.Controls.Add(this.textBox_speed);
+            this.tabGameSpeed.Controls.Add(this.label_speed);
+            this.tabGameSpeed.Location = new System.Drawing.Point(4, 22);
+            this.tabGameSpeed.Name = "tabGameSpeed";
+            this.tabGameSpeed.Padding = new System.Windows.Forms.Padding(3);
+            this.tabGameSpeed.Size = new System.Drawing.Size(718, 352);
+            this.tabGameSpeed.TabIndex = 1;
+            this.tabGameSpeed.Text = "Dünya";
+            this.tabGameSpeed.UseVisualStyleBackColor = true;
+
+            // label_speed
+            this.label_speed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_speed.AutoSize = true;
+            this.label_speed.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
+            this.label_speed.Location = new System.Drawing.Point(20, 30);
+            this.label_speed.Name = "label_speed";
+            this.label_speed.Size = new System.Drawing.Size(250, 18);
+            this.label_speed.TabIndex = 0;
+            this.label_speed.Text = "Oyun Hızı (örn: 1 = x1, 2 = x2):";
+
+            // textBox_speed
+            this.textBox_speed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_speed.Location = new System.Drawing.Point(300, 30);
+            this.textBox_speed.Name = "textBox_speed";
+            this.textBox_speed.Size = new System.Drawing.Size(390, 22);
+            this.textBox_speed.TabIndex = 1;
+            this.textBox_speed.Text = "1";
+
+            // btn_readSpeed
+            this.btn_readSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readSpeed.Location = new System.Drawing.Point(480, 110);
+            this.btn_readSpeed.Name = "btn_readSpeed";
+            this.btn_readSpeed.Size = new System.Drawing.Size(100, 35);
+            this.btn_readSpeed.TabIndex = 2;
+            this.btn_readSpeed.Text = "Oku";
+            this.btn_readSpeed.UseVisualStyleBackColor = true;
+            this.btn_readSpeed.Click += new System.EventHandler(this.btn_readSpeed_Click);
+
+            // btn_setSpeed
+            this.btn_setSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setSpeed.Location = new System.Drawing.Point(590, 110);
+            this.btn_setSpeed.Name = "btn_setSpeed";
+            this.btn_setSpeed.Size = new System.Drawing.Size(100, 35);
+            this.btn_setSpeed.TabIndex = 3;
+            this.btn_setSpeed.Text = "Uygula (Dünya)";
+            this.btn_setSpeed.UseVisualStyleBackColor = true;
+            this.btn_setSpeed.Click += new System.EventHandler(this.btn_applyWorld_Click);
+
+            // tabAbilities
+            this.tabAbilities.Controls.Add(this.btn_applyAbilities);
+            this.tabAbilities.Controls.Add(this.checkbox_paynspray_free);
+            this.tabAbilities.Controls.Add(this.checkbox_fireproof);
+            this.tabAbilities.Controls.Add(this.checkbox_infinite_run);
+            this.tabAbilities.Location = new System.Drawing.Point(4, 22);
+            this.tabAbilities.Name = "tabAbilities";
+            this.tabAbilities.Padding = new System.Windows.Forms.Padding(3);
+            this.tabAbilities.Size = new System.Drawing.Size(718, 352);
+            this.tabAbilities.TabIndex = 2;
+            this.tabAbilities.Text = "Yetenekler";
+            this.tabAbilities.UseVisualStyleBackColor = true;
+
+            // checkbox_infinite_run
+            this.checkbox_infinite_run.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkbox_infinite_run.AutoSize = true;
+            this.checkbox_infinite_run.Font = new System.Drawing.Font("Arial", 10);
+            this.checkbox_infinite_run.Location = new System.Drawing.Point(30, 30);
+            this.checkbox_infinite_run.Name = "checkbox_infinite_run";
+            this.checkbox_infinite_run.Size = new System.Drawing.Size(150, 19);
+            this.checkbox_infinite_run.TabIndex = 0;
+            this.checkbox_infinite_run.Text = "Sonsuz Koşma (Run)";
+            this.checkbox_infinite_run.UseVisualStyleBackColor = true;
+
+            // checkbox_fireproof
+            this.checkbox_fireproof.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkbox_fireproof.AutoSize = true;
+            this.checkbox_fireproof.Font = new System.Drawing.Font("Arial", 10);
+            this.checkbox_fireproof.Location = new System.Drawing.Point(30, 70);
+            this.checkbox_fireproof.Name = "checkbox_fireproof";
+            this.checkbox_fireproof.Size = new System.Drawing.Size(130, 19);
+            this.checkbox_fireproof.TabIndex = 1;
+            this.checkbox_fireproof.Text = "Ateşe Dayanıklı";
+            this.checkbox_fireproof.UseVisualStyleBackColor = true;
+
+            // checkbox_paynspray_free
+            this.checkbox_paynspray_free.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkbox_paynspray_free.AutoSize = true;
+            this.checkbox_paynspray_free.Font = new System.Drawing.Font("Arial", 10);
+            this.checkbox_paynspray_free.Location = new System.Drawing.Point(30, 110);
+            this.checkbox_paynspray_free.Name = "checkbox_paynspray_free";
+            this.checkbox_paynspray_free.Size = new System.Drawing.Size(200, 19);
+            this.checkbox_paynspray_free.TabIndex = 2;
+            this.checkbox_paynspray_free.Text = "Pay N Spray Ücretsiz Tamircı";
+            this.checkbox_paynspray_free.UseVisualStyleBackColor = true;
+
+            // btn_applyAbilities
+            this.btn_applyAbilities.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_applyAbilities.Location = new System.Drawing.Point(30, 160);
+            this.btn_applyAbilities.Name = "btn_applyAbilities";
+            this.btn_applyAbilities.Size = new System.Drawing.Size(650, 40);
+            this.btn_applyAbilities.TabIndex = 3;
+            this.btn_applyAbilities.Text = "Seçili Yetenekleri Uygula";
+            this.btn_applyAbilities.UseVisualStyleBackColor = true;
+            this.btn_applyAbilities.Click += new System.EventHandler(this.btn_applyAbilities_Click);
+
+            // tabMissions
+            this.tabMissions.Controls.Add(this.btn_setVigilante);
+            this.tabMissions.Controls.Add(this.btn_readVigilante);
+            this.tabMissions.Controls.Add(this.textBox_vigilanteTimer);
+            this.tabMissions.Controls.Add(this.label_vigilante);
+            this.tabMissions.Controls.Add(this.btn_setFirefighter);
+            this.tabMissions.Controls.Add(this.btn_readFirefighter);
+            this.tabMissions.Controls.Add(this.textBox_firefighterTimer);
+            this.tabMissions.Controls.Add(this.label_firefighter);
+            this.tabMissions.Controls.Add(this.btn_setParamedic);
+            this.tabMissions.Controls.Add(this.btn_readParamedic);
+            this.tabMissions.Controls.Add(this.textBox_paramedicTimer);
+            this.tabMissions.Controls.Add(this.label_paramedic);
+            this.tabMissions.Controls.Add(this.btn_setTipBar);
+            this.tabMissions.Controls.Add(this.btn_readTipBar);
+            this.tabMissions.Controls.Add(this.textBox_tipBarTimer);
+            this.tabMissions.Controls.Add(this.label_tipbar);
+            this.tabMissions.Controls.Add(this.btn_setTaxi);
+            this.tabMissions.Controls.Add(this.btn_readTaxi);
+            this.tabMissions.Controls.Add(this.textBox_taxiTimer);
+            this.tabMissions.Controls.Add(this.label_taxi);
+            this.tabMissions.Controls.Add(this.btn_setWanted);
+            this.tabMissions.Controls.Add(this.btn_readWanted);
+            this.tabMissions.Controls.Add(this.textBox_wantedLevel);
+            this.tabMissions.Controls.Add(this.label_wanted);
+            this.tabMissions.Controls.Add(this.textBox_maxWantedLevel);
+            this.tabMissions.Controls.Add(this.label_maxWanted);
+            this.tabMissions.Controls.Add(this.btn_setMaxWanted);
+            this.tabMissions.Controls.Add(this.btn_readMaxWanted);
+            this.tabMissions.Location = new System.Drawing.Point(4, 22);
+            this.tabMissions.Name = "tabMissions";
+            this.tabMissions.Padding = new System.Windows.Forms.Padding(3);
+            this.tabMissions.Size = new System.Drawing.Size(718, 352);
+            this.tabMissions.TabIndex = 3;
+            this.tabMissions.Text = "Görev Zamanlayıcıları";
+            this.tabMissions.UseVisualStyleBackColor = true;
+
+            // label_wanted
+            this.label_wanted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_wanted.AutoSize = true;
+            this.label_wanted.Location = new System.Drawing.Point(20, 20);
+            this.label_wanted.Name = "label_wanted";
+            this.label_wanted.Size = new System.Drawing.Size(120, 13);
+            this.label_wanted.TabIndex = 0;
+            this.label_wanted.Text = "Wanted Seviyesi (0-6):";
+
+            // textBox_wantedLevel
+            this.textBox_wantedLevel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_wantedLevel.Location = new System.Drawing.Point(350, 16);
+            this.textBox_wantedLevel.Name = "textBox_wantedLevel";
+            this.textBox_wantedLevel.Size = new System.Drawing.Size(70, 22);
+            this.textBox_wantedLevel.TabIndex = 1;
+            this.textBox_wantedLevel.Text = "0";
+
+            // btn_readWanted
+            this.btn_readWanted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readWanted.Location = new System.Drawing.Point(450, 12);
+            this.btn_readWanted.Name = "btn_readWanted";
+            this.btn_readWanted.Size = new System.Drawing.Size(70, 28);
+            this.btn_readWanted.TabIndex = 2;
+            this.btn_readWanted.Text = "Oku";
+            this.btn_readWanted.UseVisualStyleBackColor = true;
+            this.btn_readWanted.Click += new System.EventHandler(this.btn_readWanted_Click);
+
+            // btn_setWanted
+            this.btn_setWanted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setWanted.Location = new System.Drawing.Point(530, 12);
+            this.btn_setWanted.Name = "btn_setWanted";
+            this.btn_setWanted.Size = new System.Drawing.Size(70, 28);
+            this.btn_setWanted.TabIndex = 3;
+            this.btn_setWanted.Text = "Ayarla";
+            this.btn_setWanted.UseVisualStyleBackColor = true;
+            this.btn_setWanted.Click += new System.EventHandler(this.btn_setWanted_Click);
+
+            // label_maxWanted
+            this.label_maxWanted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_maxWanted.AutoSize = true;
+            this.label_maxWanted.Location = new System.Drawing.Point(20, 62);
+            this.label_maxWanted.Name = "label_maxWanted";
+            this.label_maxWanted.Size = new System.Drawing.Size(140, 13);
+            this.label_maxWanted.TabIndex = 4;
+            this.label_maxWanted.Text = "Maksimum Wanted Seviyesi:";
+
+            // textBox_maxWantedLevel
+            this.textBox_maxWantedLevel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_maxWantedLevel.Location = new System.Drawing.Point(350, 58);
+            this.textBox_maxWantedLevel.Name = "textBox_maxWantedLevel";
+            this.textBox_maxWantedLevel.Size = new System.Drawing.Size(70, 22);
+            this.textBox_maxWantedLevel.TabIndex = 5;
+            this.textBox_maxWantedLevel.Text = "6";
+
+            // btn_readMaxWanted
+            this.btn_readMaxWanted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readMaxWanted.Location = new System.Drawing.Point(450, 54);
+            this.btn_readMaxWanted.Name = "btn_readMaxWanted";
+            this.btn_readMaxWanted.Size = new System.Drawing.Size(70, 28);
+            this.btn_readMaxWanted.TabIndex = 6;
+            this.btn_readMaxWanted.Text = "Oku";
+            this.btn_readMaxWanted.UseVisualStyleBackColor = true;
+            this.btn_readMaxWanted.Click += new System.EventHandler(this.btn_readMaxWanted_Click);
+
+            // btn_setMaxWanted
+            this.btn_setMaxWanted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setMaxWanted.Location = new System.Drawing.Point(530, 54);
+            this.btn_setMaxWanted.Name = "btn_setMaxWanted";
+            this.btn_setMaxWanted.Size = new System.Drawing.Size(70, 28);
+            this.btn_setMaxWanted.TabIndex = 7;
+            this.btn_setMaxWanted.Text = "Ayarla";
+            this.btn_setMaxWanted.UseVisualStyleBackColor = true;
+            this.btn_setMaxWanted.Click += new System.EventHandler(this.btn_setMaxWanted_Click);
+
+            // label_taxi
+            this.label_taxi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_taxi.AutoSize = true;
+            this.label_taxi.Location = new System.Drawing.Point(20, 104);
+            this.label_taxi.Name = "label_taxi";
+            this.label_taxi.Size = new System.Drawing.Size(170, 13);
+            this.label_taxi.TabIndex = 8;
+            this.label_taxi.Text = "Taxi Görevi Zamanlayıcı (saniye):";
+
+            // textBox_taxiTimer
+            this.textBox_taxiTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_taxiTimer.Location = new System.Drawing.Point(470, 100);
+            this.textBox_taxiTimer.Name = "textBox_taxiTimer";
+            this.textBox_taxiTimer.Size = new System.Drawing.Size(70, 22);
+            this.textBox_taxiTimer.TabIndex = 9;
+            this.textBox_taxiTimer.Text = "60";
+
+            // btn_readTaxi
+            this.btn_readTaxi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readTaxi.Location = new System.Drawing.Point(550, 96);
+            this.btn_readTaxi.Name = "btn_readTaxi";
+            this.btn_readTaxi.Size = new System.Drawing.Size(70, 28);
+            this.btn_readTaxi.TabIndex = 10;
+            this.btn_readTaxi.Text = "Oku";
+            this.btn_readTaxi.UseVisualStyleBackColor = true;
+            this.btn_readTaxi.Click += new System.EventHandler(this.btn_readTaxi_Click);
+
+            // btn_setTaxi
+            this.btn_setTaxi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setTaxi.Location = new System.Drawing.Point(630, 96);
+            this.btn_setTaxi.Name = "btn_setTaxi";
+            this.btn_setTaxi.Size = new System.Drawing.Size(70, 28);
+            this.btn_setTaxi.TabIndex = 11;
+            this.btn_setTaxi.Text = "Ayarla";
+            this.btn_setTaxi.UseVisualStyleBackColor = true;
+            this.btn_setTaxi.Click += new System.EventHandler(this.btn_setTaxi_Click);
+
+            // label_tipbar
+            this.label_tipbar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_tipbar.AutoSize = true;
+            this.label_tipbar.Location = new System.Drawing.Point(20, 146);
+            this.label_tipbar.Name = "label_tipbar";
+            this.label_tipbar.Size = new System.Drawing.Size(150, 13);
+            this.label_tipbar.TabIndex = 12;
+            this.label_tipbar.Text = "Tip Bar Zamanlayıcı (saniye):";
+
+            // textBox_tipBarTimer
+            this.textBox_tipBarTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_tipBarTimer.Location = new System.Drawing.Point(470, 142);
+            this.textBox_tipBarTimer.Name = "textBox_tipBarTimer";
+            this.textBox_tipBarTimer.Size = new System.Drawing.Size(70, 22);
+            this.textBox_tipBarTimer.TabIndex = 13;
+            this.textBox_tipBarTimer.Text = "10";
+
+            // btn_readTipBar
+            this.btn_readTipBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readTipBar.Location = new System.Drawing.Point(550, 138);
+            this.btn_readTipBar.Name = "btn_readTipBar";
+            this.btn_readTipBar.Size = new System.Drawing.Size(70, 28);
+            this.btn_readTipBar.TabIndex = 14;
+            this.btn_readTipBar.Text = "Oku";
+            this.btn_readTipBar.UseVisualStyleBackColor = true;
+            this.btn_readTipBar.Click += new System.EventHandler(this.btn_readTipBar_Click);
+
+            // btn_setTipBar
+            this.btn_setTipBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setTipBar.Location = new System.Drawing.Point(630, 138);
+            this.btn_setTipBar.Name = "btn_setTipBar";
+            this.btn_setTipBar.Size = new System.Drawing.Size(70, 28);
+            this.btn_setTipBar.TabIndex = 15;
+            this.btn_setTipBar.Text = "Ayarla";
+            this.btn_setTipBar.UseVisualStyleBackColor = true;
+            this.btn_setTipBar.Click += new System.EventHandler(this.btn_setTipBar_Click);
+
+            // label_paramedic
+            this.label_paramedic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_paramedic.AutoSize = true;
+            this.label_paramedic.Location = new System.Drawing.Point(20, 188);
+            this.label_paramedic.Name = "label_paramedic";
+            this.label_paramedic.Size = new System.Drawing.Size(195, 13);
+            this.label_paramedic.TabIndex = 16;
+            this.label_paramedic.Text = "Paramedic Görevi Zamanlayıcı (saniye):";
+
+            // textBox_paramedicTimer
+            this.textBox_paramedicTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_paramedicTimer.Location = new System.Drawing.Point(470, 184);
+            this.textBox_paramedicTimer.Name = "textBox_paramedicTimer";
+            this.textBox_paramedicTimer.Size = new System.Drawing.Size(70, 22);
+            this.textBox_paramedicTimer.TabIndex = 17;
+            this.textBox_paramedicTimer.Text = "60";
+
+            // btn_readParamedic
+            this.btn_readParamedic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readParamedic.Location = new System.Drawing.Point(550, 180);
+            this.btn_readParamedic.Name = "btn_readParamedic";
+            this.btn_readParamedic.Size = new System.Drawing.Size(70, 28);
+            this.btn_readParamedic.TabIndex = 18;
+            this.btn_readParamedic.Text = "Oku";
+            this.btn_readParamedic.UseVisualStyleBackColor = true;
+            this.btn_readParamedic.Click += new System.EventHandler(this.btn_readParamedic_Click);
+
+            // btn_setParamedic
+            this.btn_setParamedic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setParamedic.Location = new System.Drawing.Point(630, 180);
+            this.btn_setParamedic.Name = "btn_setParamedic";
+            this.btn_setParamedic.Size = new System.Drawing.Size(70, 28);
+            this.btn_setParamedic.TabIndex = 19;
+            this.btn_setParamedic.Text = "Ayarla";
+            this.btn_setParamedic.UseVisualStyleBackColor = true;
+            this.btn_setParamedic.Click += new System.EventHandler(this.btn_setParamedic_Click);
+
+            // label_firefighter
+            this.label_firefighter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.label_firefighter.AutoSize = true;
+            this.label_firefighter.Location = new System.Drawing.Point(20, 230);
+            this.label_firefighter.Name = "label_firefighter";
+            this.label_firefighter.Size = new System.Drawing.Size(200, 13);
+            this.label_firefighter.TabIndex = 20;
+            this.label_firefighter.Text = "İtfaye Görevi Zamanlayıcı (saniye):";
+
+            // textBox_firefighterTimer
+            this.textBox_firefighterTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_firefighterTimer.Location = new System.Drawing.Point(470, 226);
+            this.textBox_firefighterTimer.Name = "textBox_firefighterTimer";
+            this.textBox_firefighterTimer.Size = new System.Drawing.Size(70, 22);
+            this.textBox_firefighterTimer.TabIndex = 21;
+            this.textBox_firefighterTimer.Text = "60";
+
+            // btn_readFirefighter
+            this.btn_readFirefighter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_readFirefighter.Location = new System.Drawing.Point(550, 222);
+            this.btn_readFirefighter.Name = "btn_readFirefighter";
+            this.btn_readFirefighter.Size = new System.Drawing.Size(70, 28);
+            this.btn_readFirefighter.TabIndex = 22;
+            this.btn_readFirefighter.Text = "Oku";
+            this.btn_readFirefighter.UseVisualStyleBackColor = true;
+            this.btn_readFirefighter.Click += new System.EventHandler(this.btn_readFirefighter_Click);
+
+            // btn_setFirefighter
+            this.btn_setFirefighter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_setFirefighter.Location = new System.Drawing.Point(630, 222);
+            this.btn_setFirefighter.Name = "btn_setFirefighter";
+            this.btn_setFirefighter.Size = new System.Drawing.Size(70, 28);
+            this.btn_setFirefighter.TabIndex = 23;
+            this.btn_setFirefighter.Text = "Ayarla";
+            this.btn_setFirefighter.UseVisualStyleBackColor = true;
+            this.btn_setFirefighter.Click += new System.EventHandler(this.btn_setFirefighter_Click);
+
+            // tabControl1
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(750, 450); // Form Boyutu 750x450 yapıldı (Genişletildi)
+            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.statusLabel);
+            this.Controls.Add(this.ConnectBtn);
+            this.Name = "Yasef";
+            this.Text = "Yasef - GTA:SA Mod Menüsü";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.tabControl1.ResumeLayout(false);
+            this.tabMoney.ResumeLayout(false);
+            this.tabMoney.PerformLayout();
+            this.tabGameSpeed.ResumeLayout(false);
+            this.tabGameSpeed.PerformLayout();
+            this.tabAbilities.ResumeLayout(false);
+            this.tabAbilities.PerformLayout();
+            this.tabMissions.ResumeLayout(false);
+            this.tabMissions.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button ConnectBtn;
+        private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabMoney;
+        private System.Windows.Forms.Button btn_readMoney;
+        private System.Windows.Forms.Button btn_setMoney;
+        private System.Windows.Forms.TextBox textBox_money;
+        private System.Windows.Forms.Label label_money;
+        private System.Windows.Forms.TabPage tabGameSpeed;
+        private System.Windows.Forms.Button btn_readSpeed;
+        private System.Windows.Forms.Button btn_setSpeed;
+        private System.Windows.Forms.TextBox textBox_speed;
+        private System.Windows.Forms.Label label_speed;
+        private System.Windows.Forms.TabPage tabAbilities;
+        private System.Windows.Forms.CheckBox checkbox_infinite_run;
+        private System.Windows.Forms.CheckBox checkbox_fireproof;
+        private System.Windows.Forms.CheckBox checkbox_paynspray_free;
+        private System.Windows.Forms.Button btn_applyAbilities;
+        private System.Windows.Forms.TabPage tabMissions;
+        private System.Windows.Forms.Label label_taxi;
+        private System.Windows.Forms.TextBox textBox_taxiTimer;
+        private System.Windows.Forms.Button btn_readTaxi;
+        private System.Windows.Forms.Button btn_setTaxi;
+        private System.Windows.Forms.Label label_tipbar;
+        private System.Windows.Forms.TextBox textBox_tipBarTimer;
+        private System.Windows.Forms.Button btn_readTipBar;
+        private System.Windows.Forms.Button btn_setTipBar;
+        private System.Windows.Forms.Label label_paramedic;
+        private System.Windows.Forms.TextBox textBox_paramedicTimer;
+        private System.Windows.Forms.Button btn_readParamedic;
+        private System.Windows.Forms.Button btn_setParamedic;
+        private System.Windows.Forms.Label label_firefighter;
+        private System.Windows.Forms.TextBox textBox_firefighterTimer;
+        private System.Windows.Forms.Button btn_readFirefighter;
+        private System.Windows.Forms.Button btn_setFirefighter;
+        private System.Windows.Forms.Label label_vigilante;
+        private System.Windows.Forms.TextBox textBox_vigilanteTimer;
+        private System.Windows.Forms.Button btn_readVigilante;
+        private System.Windows.Forms.Button btn_setVigilante;
+        private System.Windows.Forms.Label label_wanted;
+        private System.Windows.Forms.TextBox textBox_wantedLevel;
+        private System.Windows.Forms.Button btn_readWanted;
+        private System.Windows.Forms.Button btn_setWanted;
+        private System.Windows.Forms.Label label_maxWanted;
+        private System.Windows.Forms.TextBox textBox_maxWantedLevel;
+        private System.Windows.Forms.Button btn_readMaxWanted;
+        private System.Windows.Forms.Button btn_setMaxWanted;
+    }
+}

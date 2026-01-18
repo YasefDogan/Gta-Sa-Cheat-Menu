@@ -1,0 +1,748 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Drawing.Text;
+using System.IO;
+using System.Reflection;
+
+// P/Invoke ve Memory Yönetimi için Statik Sınıf
+public static class MemoryHelper
+{
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CloseHandle(IntPtr hObject);
+
+    public const uint PROCESS_ALL_ACCESS = 0x1F0FFF;
+    public const uint PROCESS_VM_WRITE = 0x0020;
+    public const uint PROCESS_VM_READ = 0x0010;
+
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, int value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, float value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, byte value)
+    {
+        byte[] buffer = new byte[] { value };
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    public static int ReadMemory(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToInt32(buffer, 0);
+    }
+
+    public static float ReadMemoryFloat(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToSingle(buffer, 0);
+    }
+
+    public static byte ReadMemoryByte(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[1];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 1, out bytesRead);
+        return buffer[0];
+    }
+}
+
+namespace cheat
+{
+    public partial class Form1 : Form
+    {
+        private PrivateFontCollection privateFonts = new PrivateFontCollection();
+
+        private IntPtr processHandle = IntPtr.Zero;
+        private int targetProcessId = -1;
+        private const string TargetProcessName = "gta-sa";
+
+        // Bellek Adresleri
+        private readonly IntPtr addr_Money = new IntPtr(0xB7CE50);
+        private readonly IntPtr addr_GameSpeed = new IntPtr(0xB7CB64);
+        private readonly IntPtr addr_InfiniteRun = new IntPtr(0xB7CEE4);
+        private readonly IntPtr addr_Fireproof = new IntPtr(0xB7CEE6);
+        private readonly IntPtr addr_PayNSprayFree = new IntPtr(0x96C009);
+
+        private readonly IntPtr addr_TaxiTimer = new IntPtr(0xA5197C);
+        private readonly IntPtr addr_TipBarTimer = new IntPtr(0xA51980);
+        private readonly IntPtr addr_ParamedicTimer = new IntPtr(0xA519A8);
+        private readonly IntPtr addr_FirefighterTimer = new IntPtr(0xA519BC);
+        private readonly IntPtr addr_VigilanteTimer = new IntPtr(0xA519D8);
+
+        // Scale factor for fonts (e.g. 1.3 = 30% bigger)
+        private readonly float fontScale = 1.3f;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Set window title to current Windows user
+            this.Text = $"{Environment.UserName} - GTA:SA Mod Menüsü";
+
+            // Load and apply custom font (tries embedded resource then files)
+            LoadAndApplyCustomFont();
+
+            // Apply dark theme to entire form and controls (black background, readable text)
+            try { ApplyDarkTheme(); } catch { }
+
+            MessageBox.Show(
+                "Kadir - GTA:SA Mod Menüsü\n\n" +
+                "Özellikler:\n" +
+                "• Para Değiştirme\n" +
+                "• Oyun Hızını Kontrol Etme (kat olarak, örn: 1 = normal, 2 = 2x)\n" +
+                "• Sonsuz Koşma\n" +
+                "• Ateşe Dayanıklı Ol\n" +
+                "• Pay N Spray Ücretsiz\n" +
+                "• Görev Zamanlayıcıları (saniye olarak giriniz)\n\n" +
+                "NOT: Yönetici haklarıyla çalıştırın.",
+                "Hoş Geldiniz"
+            );
+
+            UpdateStatus(false);
+
+            try
+            {
+                textBox_taxiTimer.Text = "60";
+                textBox_tipBarTimer.Text = "10";
+                textBox_paramedicTimer.Text = "60";
+                textBox_firefighterTimer.Text = "60";
+                textBox_vigilanteTimer.Text = "60";
+                textBox_speed.Text = "1";
+            }
+            catch { }
+        }
+
+        private void LoadAndApplyCustomFont()
+        {
+            try
+            {
+                // 1) Try embedded resource via Properties.Resources if available
+                try
+                {
+                    // If you added the font as a resource named e.g. PricedownBl_Regular_900
+                    var resType = typeof(Properties.Resources);
+                    var prop = resType.GetProperty("PricedownBl_Regular_900", BindingFlags.Static | BindingFlags.Public);
+                    if (prop != null)
+                    {
+                        var fontData = prop.GetValue(null) as byte[];
+                        if (fontData != null && fontData.Length > 0)
+                        {
+                            IntPtr data = Marshal.AllocCoTaskMem(fontData.Length);
+                            try
+                            {
+                                Marshal.Copy(fontData, 0, data, fontData.Length);
+                                privateFonts.AddMemoryFont(data, fontData.Length);
+                            }
+                            finally
+                            {
+                                Marshal.FreeCoTaskMem(data);
+                            }
+                        }
+                    }
+                }
+                catch { /* ignore resource errors */ }
+
+                // 2) If no font families loaded, try assembly manifest resources
+                if (privateFonts.Families.Length == 0)
+                {
+                    var asm = Assembly.GetExecutingAssembly();
+                    foreach (var name in asm.GetManifestResourceNames())
+                    {
+                        if (name.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".otf", StringComparison.OrdinalIgnoreCase))
+                        {
+                            using (var s = asm.GetManifestResourceStream(name))
+                            {
+                                if (s != null)
+                                {
+                                    byte[] data = new byte[s.Length];
+                                    s.Read(data, 0, data.Length);
+                                    IntPtr mem = Marshal.AllocCoTaskMem(data.Length);
+                                    try
+                                    {
+                                        Marshal.Copy(data, 0, mem, data.Length);
+                                        privateFonts.AddMemoryFont(mem, data.Length);
+                                    }
+                                    finally { Marshal.FreeCoTaskMem(mem); }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3) If still empty, probe file system near exe
+                if (privateFonts.Families.Length == 0)
+                {
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string fontPath = null;
+                    // common candidate locations
+                    var candidates = new string[] {
+                        Path.Combine(baseDir, "font.ttf"),
+                        Path.Combine(baseDir, "font.otf"),
+                        Path.Combine(baseDir, "Properties", "font.ttf"),
+                        Path.Combine(baseDir, "Properties", "font.otf"),
+                        Path.Combine(baseDir, "..", "font.ttf"),
+                        Path.Combine(baseDir, "..", "font.otf"),
+                        Path.Combine(Application.StartupPath, "font.ttf"),
+                        Path.Combine(Environment.CurrentDirectory, "font.ttf")
+                    };
+
+                    foreach (var cand in candidates)
+                    {
+                        try
+                        {
+                            if (File.Exists(cand))
+                            {
+                                fontPath = cand;
+                                break;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // previous behavior: look for any ttf/otf in baseDir
+                    if (fontPath == null)
+                    {
+                        try
+                        {
+                            var ttf = Directory.GetFiles(baseDir, "*.ttf");
+                            if (ttf.Length == 0) ttf = Directory.GetFiles(baseDir, "*.otf");
+                            if (ttf.Length > 0) fontPath = ttf[0];
+                        }
+                        catch { }
+                    }
+
+                    if (fontPath != null)
+                    {
+                        try { privateFonts.AddFontFile(fontPath); }
+                        catch { }
+                    }
+                }
+
+                if (privateFonts.Families.Length > 0)
+                {
+                    var ff = privateFonts.Families[0];
+                    float size = this.Font.Size;
+                    using (var appFont = new Font(ff, size, FontStyle.Regular))
+                    {
+                        ApplyFontToControl(this, appFont);
+                    }
+
+                    try { statusLabel.Text = $"Durum: Bağlı Değil ✗   (Font: {privateFonts.Families[0].Name})"; }
+                    catch { }
+                }
+            }
+            catch { /* ignore errors */ }
+        }
+
+        private void ApplyFontToControl(Control control, Font font)
+        {
+            if (control == null || font == null) return;
+
+            // Avoid applying multiple times by checking family
+            bool alreadyApplied = control.Font != null && control.Font.FontFamily.Name == font.FontFamily.Name;
+            if (!alreadyApplied)
+            {
+                float origSize = control.Font != null ? control.Font.Size : font.Size;
+                FontStyle origStyle = control.Font != null ? control.Font.Style : FontStyle.Regular;
+                float newSize = Math.Max(6f, origSize * fontScale); // avoid extremely small sizes
+                control.Font = new Font(font.FontFamily, newSize, origStyle);
+            }
+
+            // If control has a ContextMenuStrip, apply to its items
+            if (control.ContextMenuStrip != null)
+            {
+                foreach (ToolStripItem itm in control.ContextMenuStrip.Items)
+                {
+                    if (itm == null) continue;
+                    bool itemAlready = itm.Font != null && itm.Font.FontFamily.Name == font.FontFamily.Name;
+                    if (!itemAlready)
+                        itm.Font = new Font(font.FontFamily, Math.Max(6f, itm.Font.Size * fontScale), itm.Font.Style);
+
+                    if (itm is ToolStripMenuItem mi && mi.DropDownItems.Count > 0)
+                        ApplyFontToToolStripDropDown(mi.DropDownItems, font);
+                }
+            }
+
+            // Special handling for ToolStrip-derived controls (MenuStrip, ToolStrip, StatusStrip)
+            if (control is ToolStrip tsControl)
+            {
+                bool tsAlready = tsControl.Font != null && tsControl.Font.FontFamily.Name == font.FontFamily.Name;
+                if (!tsAlready)
+                    tsControl.Font = new Font(font.FontFamily, Math.Max(6f, tsControl.Font.Size * fontScale), tsControl.Font.Style);
+
+                foreach (ToolStripItem item in tsControl.Items)
+                {
+                    if (item == null) continue;
+                    bool itemAlready = item.Font != null && item.Font.FontFamily.Name == font.FontFamily.Name;
+                    if (!itemAlready)
+                        item.Font = new Font(font.FontFamily, Math.Max(6f, item.Font.Size * fontScale), item.Font.Style);
+
+                    if (item is ToolStripMenuItem menuItem && menuItem.DropDownItems.Count > 0)
+                        ApplyFontToToolStripDropDown(menuItem.DropDownItems, font);
+                }
+            }
+
+            // Recurse for child controls
+            foreach (Control child in control.Controls)
+                ApplyFontToControl(child, font);
+        }
+
+        private void ApplyFontToToolStripDropDown(ToolStripItemCollection items, Font font)
+        {
+            if (items == null || font == null) return;
+            foreach (ToolStripItem it in items)
+            {
+                if (it == null) continue;
+                bool already = it.Font != null && it.Font.FontFamily.Name == font.FontFamily.Name;
+                if (!already)
+                    it.Font = new Font(font.FontFamily, Math.Max(6f, it.Font.Size * fontScale), it.Font.Style);
+                if (it is ToolStripMenuItem mi && mi.DropDownItems.Count > 0)
+                {
+                    ApplyFontToToolStripDropDown(mi.DropDownItems, font);
+                }
+            }
+        }
+
+        // Apply a dark theme to the entire form and all controls so everything is consistent.
+        // Background will be black; text/foreground will be set to a readable color (white).
+        private void ApplyDarkTheme()
+        {
+            Color back = Color.Black;
+            Color fore = Color.White;
+
+            // Form
+            this.BackColor = back;
+            this.ForeColor = fore;
+
+            // Main menu strip if present
+            if (this.MainMenuStrip != null)
+                ApplyThemeToToolStrip(this.MainMenuStrip, back, fore);
+
+            // Recursively apply theme to all controls on the form
+            foreach (Control c in this.Controls)
+                ApplyThemeToControlTheme(c, back, fore);
+        }
+
+        private void ApplyThemeToControlTheme(Control control, Color back, Color fore)
+        {
+            if (control == null) return;
+
+            // Containers should have background set
+            if (control is Panel || control is GroupBox || control is TabPage || control is TabControl || control is FlowLayoutPanel || control is TableLayoutPanel)
+            {
+                try { control.BackColor = back; } catch { }
+            }
+
+            // Specific handling for common control types
+            if (control is Label || control is CheckBox || control is RadioButton || control is LinkLabel || control is GroupBox)
+            {
+                try { control.ForeColor = fore; } catch { }
+            }
+            else if (control is Button)
+            {
+                try { control.BackColor = back; control.ForeColor = fore; } catch { }
+            }
+            else if (control is TextBox || control is RichTextBox)
+            {
+                try { control.BackColor = Color.FromArgb(30, 30, 30); control.ForeColor = fore; } catch { }
+            }
+            else if (control is ComboBox || control is ListBox)
+            {
+                try { control.BackColor = Color.FromArgb(30, 30, 30); control.ForeColor = fore; } catch { }
+            }
+            else if (control is TabControl tc)
+            {
+                try { tc.BackColor = back; tc.ForeColor = fore; foreach (TabPage tp in tc.TabPages) { tp.BackColor = back; tp.ForeColor = fore; } } catch { }
+            }
+
+            // ToolStrip-derived controls need special handling
+            if (control is ToolStrip ts)
+            {
+                ApplyThemeToToolStrip(ts, back, fore);
+            }
+
+            // Recurse into children
+            foreach (Control child in control.Controls)
+                ApplyThemeToControlTheme(child, back, fore);
+        }
+
+        private void ApplyThemeToToolStrip(ToolStrip ts, Color back, Color fore)
+        {
+            if (ts == null) return;
+            try { ts.BackColor = back; ts.ForeColor = fore; } catch { }
+            foreach (ToolStripItem itm in ts.Items)
+            {
+                if (itm == null) continue;
+                try { itm.ForeColor = fore; } catch { }
+                if (itm is ToolStripMenuItem mi && mi.DropDownItems.Count > 0)
+                    ApplyThemeToToolStripDropDownItems(mi.DropDownItems, back, fore);
+            }
+        }
+
+        private void ApplyThemeToToolStripDropDownItems(ToolStripItemCollection items, Color back, Color fore)
+        {
+            if (items == null) return;
+            foreach (ToolStripItem it in items)
+            {
+                if (it == null) continue;
+                try { it.ForeColor = fore; } catch { }
+                if (it is ToolStripMenuItem mi && mi.DropDownItems.Count > 0)
+                    ApplyThemeToToolStripDropDownItems(mi.DropDownItems, back, fore);
+            }
+        }
+
+        private void UpdateStatus(bool connected)
+        {
+            if (connected)
+            {
+                statusLabel.Text = $"Durum: Bağlı ✓ (PID: {targetProcessId})";
+                statusLabel.ForeColor = Color.Green;
+            }
+            else
+            {
+                statusLabel.Text = "Durum: Bağlı Değil ✗";
+                statusLabel.ForeColor = Color.Red;
+            }
+        }
+
+        // ========== PARA TAB ==========
+        private void ReadMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            int value = MemoryHelper.ReadMemory(processHandle, addr_Money);
+            MessageBox.Show($"Mevcut Para: {value}\n(Hex: 0x{value:X})", "Sonuç");
+        }
+
+        private void WriteMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            if (!int.TryParse(textBox_money.Text, out int newValue))
+            {
+                MessageBox.Show("Lütfen geçerli bir sayı giriniz!", "Hata");
+                return;
+            }
+
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_Money, newValue);
+
+            if (success)
+            {
+                MessageBox.Show($"Para Yazıldı!\nYeni Değer: {newValue}", "Başarılı");
+            }
+            else
+            {
+                MessageBox.Show("Yazma Başarısız! Hata: " + Marshal.GetLastWin32Error(), "Hata");
+            }
+        }
+
+        // ========== OYUN HIZI TAB ==========
+        private void btn_readSpeed_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            float percent = MemoryHelper.ReadMemoryFloat(processHandle, addr_GameSpeed);
+            float multiplier = percent / 100f; // convert percent to multiplier
+            MessageBox.Show($"Mevcut Oyun Hızı: x{multiplier}", "Sonuç");
+        }
+
+        private void btn_setSpeed_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            if (!float.TryParse(textBox_speed.Text, out float multiplier))
+            {
+                MessageBox.Show("Lütfen geçerli bir kat (ör. 1, 2, 3) giriniz!", "Hata");
+                return;
+            }
+
+            float percent = multiplier * 100f; // convert multiplier to percent
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_GameSpeed, percent);
+
+            if (success)
+            {
+                MessageBox.Show($"Oyun Hızı Ayarlandı!\nYeni Değer: x{multiplier}", "Başarılı");
+            }
+            else
+            {
+                MessageBox.Show("Yazma Başarısız! Hata: " + Marshal.GetLastWin32Error(), "Hata");
+            }
+        }
+
+        // ========== YETENEKLER TAB ==========
+        private void btn_applyAbilities_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+
+            string result = "";
+
+            // Sonsuz Koşma
+            if (checkbox_infinite_run.Checked)
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_InfiniteRun, (byte)1);
+                result += success ? "✓ Sonsuz Koşma Aktif\n" : "✗ Sonsuz Koşma Başarısız\n";
+            }
+            else
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_InfiniteRun, (byte)0);
+                result += success ? "✓ Sonsuz Koşma Pasif\n" : "✗ Sonsuz Koşma Başarısız\n";
+            }
+
+            // Ateşe Dayanıklı
+            if (checkbox_fireproof.Checked)
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_Fireproof, (byte)1);
+                result += success ? "✓ Ateşe Dayanıklı Aktif\n" : "✗ Ateşe Dayanıklı Başarısız\n";
+            }
+            else
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_Fireproof, (byte)0);
+                result += success ? "✓ Ateşe Dayanıklı Pasif\n" : "✗ Ateşe Dayanıklı Başarısız\n";
+            }
+
+            // Pay N Spray Ücretsiz
+            if (checkbox_paynspray_free.Checked)
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_PayNSprayFree, (byte)1);
+                result += success ? "✓ Pay N Spray Ücretsiz Aktif\n" : "✗ Pay N Spray Ücretsiz Başarısız\n";
+            }
+            else
+            {
+                bool success = MemoryHelper.WriteMemory(processHandle, addr_PayNSprayFree, (byte)0);
+                result += success ? "✓ Pay N Spray Ücretsiz Pasif\n" : "✗ Pay N Spray Ücretsiz Başarısız\n";
+            }
+
+            MessageBox.Show(result, "Yetenekler Uygulandı");
+        }
+
+        // ========== GÖREV ZAMANLAYICILARI TAB ==========
+        private void btn_readTaxi_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_TaxiTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Taxi Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setTaxi_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_taxiTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_TaxiTimer, newMs);
+            MessageBox.Show(success ? "Taxi zamanlayıcı ayarlandı." : "Taxi zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readTipBar_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueSec = MemoryHelper.ReadMemory(processHandle, addr_TipBarTimer);
+            MessageBox.Show($"Tip Bar Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setTipBar_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_tipBarTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_TipBarTimer, newSec);
+            MessageBox.Show(success ? "Tip Bar zamanlayıcısı ayarlandı." : "Tip Bar zamanlayıcısı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readParamedic_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_ParamedicTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Paramedic Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setParamedic_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_paramedicTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_ParamedicTimer, newMs);
+            MessageBox.Show(success ? "Paramedic zamanlayıcı ayarlandı." : "Paramedic zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readFirefighter_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_FirefighterTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Firefighter Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setFirefighter_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_firefighterTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_FirefighterTimer, newMs);
+            MessageBox.Show(success ? "Firefighter zamanlayıcı ayarlandı." : "Firefighter zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        private void btn_readVigilante_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            int valueMs = MemoryHelper.ReadMemory(processHandle, addr_VigilanteTimer);
+            int valueSec = valueMs / 1000;
+            MessageBox.Show($"Vigilante Görevi Zamanlayıcı: {valueSec} s", "Sonuç");
+        }
+
+        private void btn_setVigilante_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce GTA:SA işlemine bağlanın!", "Hata");
+                return;
+            }
+            if (!int.TryParse(textBox_vigilanteTimer.Text, out int newSec))
+            {
+                MessageBox.Show("Lütfen geçerli bir saniye değeri giriniz!", "Hata");
+                return;
+            }
+            int newMs = newSec * 1000;
+            bool success = MemoryHelper.WriteMemory(processHandle, addr_VigilanteTimer, newMs);
+            MessageBox.Show(success ? "Vigilante zamanlayıcı ayarlandı." : "Vigilante zamanlayıcı ayarlanamadı. Hata: " + Marshal.GetLastWin32Error(), "Sonuç");
+        }
+
+        // ========== BAĞLANTI ==========
+        private void ConnectBtn_Click(object sender, EventArgs e)
+        {
+            string processName = TargetProcessName;
+
+            Process[] processes = Process.GetProcessesByName(processName);
+
+            if (processes.Length == 0)
+            {
+                MessageBox.Show($"İşlem bulunamadı: {processName}.exe\nLütfen GTA:SA'nin çalıştığından emin olun.", "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            targetProcessId = processes[0].Id;
+            processHandle = MemoryHelper.OpenProcess(MemoryHelper.PROCESS_ALL_ACCESS, false, targetProcessId);
+
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("İşleme bağlanılamadı! Yönetici haklarına ihtiyacınız olabilir.\nHata Kodu: " + Marshal.GetLastWin32Error(), "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            MessageBox.Show($"Bağlanıldı!\nİşlem: {processes[0].ProcessName} (PID: {targetProcessId})", "Başarılı");
+            UpdateStatus(true);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (processHandle != IntPtr.Zero)
+                MemoryHelper.CloseHandle(processHandle);
+
+            try { privateFonts.Dispose(); } catch { }
+        }
+    }
+}

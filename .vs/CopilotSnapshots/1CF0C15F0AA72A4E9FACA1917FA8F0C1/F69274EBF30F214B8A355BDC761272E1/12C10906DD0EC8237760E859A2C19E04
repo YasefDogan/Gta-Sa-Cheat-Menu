@@ -1,0 +1,270 @@
+﻿namespace cheat
+{
+    partial class Form1
+    {
+        /// <summary>
+        ///Gerekli tasarımcı değişkeni.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        ///Kullanılan tüm kaynakları temizleyin.
+        /// </summary>
+        ///<param name="disposing">yönetilen kaynaklar dispose edilmeliyse doğru; aksi halde yanlış.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer üretilen kod
+
+        /// <summary>
+        /// Tasarımcı desteği için gerekli metot - bu metodun 
+        ///içeriğini kod düzenleyici ile değiştirmeyin.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.ConnectBtn = new System.Windows.Forms.Button();
+            this.statusLabel = new System.Windows.Forms.Label();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabMoney = new System.Windows.Forms.TabPage();
+            this.label_money = new System.Windows.Forms.Label();
+            this.textBox_money = new System.Windows.Forms.TextBox();
+            this.btn_setMoney = new System.Windows.Forms.Button();
+            this.btn_readMoney = new System.Windows.Forms.Button();
+            this.tabGameSpeed = new System.Windows.Forms.TabPage();
+            this.label_speed = new System.Windows.Forms.Label();
+            this.textBox_speed = new System.Windows.Forms.TextBox();
+            this.btn_setSpeed = new System.Windows.Forms.Button();
+            this.btn_readSpeed = new System.Windows.Forms.Button();
+            this.tabAbilities = new System.Windows.Forms.TabPage();
+            this.checkbox_infinite_run = new System.Windows.Forms.CheckBox();
+            this.checkbox_fireproof = new System.Windows.Forms.CheckBox();
+            this.checkbox_paynspray_free = new System.Windows.Forms.CheckBox();
+            this.btn_applyAbilities = new System.Windows.Forms.Button();
+            this.tabControl1.SuspendLayout();
+            this.tabMoney.SuspendLayout();
+            this.tabGameSpeed.SuspendLayout();
+            this.tabAbilities.SuspendLayout();
+            this.SuspendLayout();
+            
+            // ConnectBtn
+            this.ConnectBtn.Location = new System.Drawing.Point(12, 12);
+            this.ConnectBtn.Name = "ConnectBtn";
+            this.ConnectBtn.Size = new System.Drawing.Size(120, 35);
+            this.ConnectBtn.TabIndex = 0;
+            this.ConnectBtn.Text = "Bağlan (GTA-SA)";
+            this.ConnectBtn.UseVisualStyleBackColor = true;
+            this.ConnectBtn.Click += new System.EventHandler(this.ConnectBtn_Click);
+            
+            // statusLabel
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(150, 20);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(154, 13);
+            this.statusLabel.TabIndex = 1;
+            this.statusLabel.Text = "Durum: Bağlı Değil ✗";
+            this.statusLabel.ForeColor = System.Drawing.Color.Red;
+            this.statusLabel.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+            
+            // tabControl1
+            this.tabControl1.Location = new System.Drawing.Point(12, 60);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(460, 300);
+            this.tabControl1.TabIndex = 2;
+            
+            // tabMoney
+            this.tabMoney.Controls.Add(this.btn_readMoney);
+            this.tabMoney.Controls.Add(this.btn_setMoney);
+            this.tabMoney.Controls.Add(this.textBox_money);
+            this.tabMoney.Controls.Add(this.label_money);
+            this.tabMoney.Location = new System.Drawing.Point(4, 22);
+            this.tabMoney.Name = "tabMoney";
+            this.tabMoney.Padding = new System.Windows.Forms.Padding(3);
+            this.tabMoney.Size = new System.Drawing.Size(452, 274);
+            this.tabMoney.TabIndex = 0;
+            this.tabMoney.Text = "Para";
+            this.tabMoney.UseVisualStyleBackColor = true;
+            
+            // label_money
+            this.label_money.AutoSize = true;
+            this.label_money.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
+            this.label_money.Location = new System.Drawing.Point(20, 30);
+            this.label_money.Name = "label_money";
+            this.label_money.Size = new System.Drawing.Size(130, 18);
+            this.label_money.TabIndex = 0;
+            this.label_money.Text = "Para Miktarı Giriniz:";
+            
+            // textBox_money
+            this.textBox_money.Location = new System.Drawing.Point(160, 25);
+            this.textBox_money.Name = "textBox_money";
+            this.textBox_money.Size = new System.Drawing.Size(200, 22);
+            this.textBox_money.TabIndex = 1;
+            this.textBox_money.Text = "1000000";
+            
+            // btn_readMoney
+            this.btn_readMoney.Location = new System.Drawing.Point(20, 70);
+            this.btn_readMoney.Name = "btn_readMoney";
+            this.btn_readMoney.Size = new System.Drawing.Size(100, 35);
+            this.btn_readMoney.TabIndex = 2;
+            this.btn_readMoney.Text = "Oku";
+            this.btn_readMoney.UseVisualStyleBackColor = true;
+            this.btn_readMoney.Click += new System.EventHandler(this.ReadMemoryBtn_Click);
+            
+            // btn_setMoney
+            this.btn_setMoney.Location = new System.Drawing.Point(130, 70);
+            this.btn_setMoney.Name = "btn_setMoney";
+            this.btn_setMoney.Size = new System.Drawing.Size(100, 35);
+            this.btn_setMoney.TabIndex = 3;
+            this.btn_setMoney.Text = "Yazz";
+            this.btn_setMoney.UseVisualStyleBackColor = true;
+            this.btn_setMoney.Click += new System.EventHandler(this.WriteMemoryBtn_Click);
+            
+            // tabGameSpeed
+            this.tabGameSpeed.Controls.Add(this.btn_readSpeed);
+            this.tabGameSpeed.Controls.Add(this.btn_setSpeed);
+            this.tabGameSpeed.Controls.Add(this.textBox_speed);
+            this.tabGameSpeed.Controls.Add(this.label_speed);
+            this.tabGameSpeed.Location = new System.Drawing.Point(4, 22);
+            this.tabGameSpeed.Name = "tabGameSpeed";
+            this.tabGameSpeed.Padding = new System.Windows.Forms.Padding(3);
+            this.tabGameSpeed.Size = new System.Drawing.Size(452, 274);
+            this.tabGameSpeed.TabIndex = 1;
+            this.tabGameSpeed.Text = "Oyun Hızı";
+            this.tabGameSpeed.UseVisualStyleBackColor = true;
+            
+            // label_speed
+            this.label_speed.AutoSize = true;
+            this.label_speed.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
+            this.label_speed.Location = new System.Drawing.Point(20, 30);
+            this.label_speed.Name = "label_speed";
+            this.label_speed.Size = new System.Drawing.Size(185, 18);
+            this.label_speed.TabIndex = 0;
+            this.label_speed.Text = "Oyun Hızı (% cinsinden):";
+            
+            // textBox_speed
+            this.textBox_speed.Location = new System.Drawing.Point(220, 25);
+            this.textBox_speed.Name = "textBox_speed";
+            this.textBox_speed.Size = new System.Drawing.Size(140, 22);
+            this.textBox_speed.TabIndex = 1;
+            this.textBox_speed.Text = "100";
+            
+            // btn_readSpeed
+            this.btn_readSpeed.Location = new System.Drawing.Point(20, 70);
+            this.btn_readSpeed.Name = "btn_readSpeed";
+            this.btn_readSpeed.Size = new System.Drawing.Size(100, 35);
+            this.btn_readSpeed.TabIndex = 2;
+            this.btn_readSpeed.Text = "Oku";
+            this.btn_readSpeed.UseVisualStyleBackColor = true;
+            this.btn_readSpeed.Click += new System.EventHandler(this.btn_readSpeed_Click);
+            
+            // btn_setSpeed
+            this.btn_setSpeed.Location = new System.Drawing.Point(130, 70);
+            this.btn_setSpeed.Name = "btn_setSpeed";
+            this.btn_setSpeed.Size = new System.Drawing.Size(100, 35);
+            this.btn_setSpeed.TabIndex = 3;
+            this.btn_setSpeed.Text = "Yazz";
+            this.btn_setSpeed.UseVisualStyleBackColor = true;
+            this.btn_setSpeed.Click += new System.EventHandler(this.btn_setSpeed_Click);
+            
+            // tabAbilities
+            this.tabAbilities.Controls.Add(this.btn_applyAbilities);
+            this.tabAbilities.Controls.Add(this.checkbox_paynspray_free);
+            this.tabAbilities.Controls.Add(this.checkbox_fireproof);
+            this.tabAbilities.Controls.Add(this.checkbox_infinite_run);
+            this.tabAbilities.Location = new System.Drawing.Point(4, 22);
+            this.tabAbilities.Name = "tabAbilities";
+            this.tabAbilities.Padding = new System.Windows.Forms.Padding(3);
+            this.tabAbilities.Size = new System.Drawing.Size(452, 274);
+            this.tabAbilities.TabIndex = 2;
+            this.tabAbilities.Text = "Yetenekler";
+            this.tabAbilities.UseVisualStyleBackColor = true;
+            
+            // checkbox_infinite_run
+            this.checkbox_infinite_run.AutoSize = true;
+            this.checkbox_infinite_run.Font = new System.Drawing.Font("Arial", 10);
+            this.checkbox_infinite_run.Location = new System.Drawing.Point(30, 30);
+            this.checkbox_infinite_run.Name = "checkbox_infinite_run";
+            this.checkbox_infinite_run.Size = new System.Drawing.Size(150, 19);
+            this.checkbox_infinite_run.TabIndex = 0;
+            this.checkbox_infinite_run.Text = "Sonsuz Koşma (Run)";
+            this.checkbox_infinite_run.UseVisualStyleBackColor = true;
+            
+            // checkbox_fireproof
+            this.checkbox_fireproof.AutoSize = true;
+            this.checkbox_fireproof.Font = new System.Drawing.Font("Arial", 10);
+            this.checkbox_fireproof.Location = new System.Drawing.Point(30, 70);
+            this.checkbox_fireproof.Name = "checkbox_fireproof";
+            this.checkbox_fireproof.Size = new System.Drawing.Size(130, 19);
+            this.checkbox_fireproof.TabIndex = 1;
+            this.checkbox_fireproof.Text = "Ateşe Dayanıklı";
+            this.checkbox_fireproof.UseVisualStyleBackColor = true;
+            
+            // checkbox_paynspray_free
+            this.checkbox_paynspray_free.AutoSize = true;
+            this.checkbox_paynspray_free.Font = new System.Drawing.Font("Arial", 10);
+            this.checkbox_paynspray_free.Location = new System.Drawing.Point(30, 110);
+            this.checkbox_paynspray_free.Name = "checkbox_paynspray_free";
+            this.checkbox_paynspray_free.Size = new System.Drawing.Size(200, 19);
+            this.checkbox_paynspray_free.TabIndex = 2;
+            this.checkbox_paynspray_free.Text = "Pay N Spray Ücretsiz Tamircı";
+            this.checkbox_paynspray_free.UseVisualStyleBackColor = true;
+            
+            // btn_applyAbilities
+            this.btn_applyAbilities.Location = new System.Drawing.Point(30, 160);
+            this.btn_applyAbilities.Name = "btn_applyAbilities";
+            this.btn_applyAbilities.Size = new System.Drawing.Size(150, 40);
+            this.btn_applyAbilities.TabIndex = 3;
+            this.btn_applyAbilities.Text = "Seçili Yetenekleri Uygula";
+            this.btn_applyAbilities.UseVisualStyleBackColor = true;
+            this.btn_applyAbilities.Click += new System.EventHandler(this.btn_applyAbilities_Click);
+            
+            // Form1
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(484, 376);
+            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.statusLabel);
+            this.Controls.Add(this.ConnectBtn);
+            this.Name = "Form1";
+            this.Text = "Kadir - GTA:SA Mod Menüsü";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.tabControl1.ResumeLayout(false);
+            this.tabMoney.ResumeLayout(false);
+            this.tabMoney.PerformLayout();
+            this.tabGameSpeed.ResumeLayout(false);
+            this.tabGameSpeed.PerformLayout();
+            this.tabAbilities.ResumeLayout(false);
+            this.tabAbilities.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button ConnectBtn;
+        private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabMoney;
+        private System.Windows.Forms.Button btn_readMoney;
+        private System.Windows.Forms.Button btn_setMoney;
+        private System.Windows.Forms.TextBox textBox_money;
+        private System.Windows.Forms.Label label_money;
+        private System.Windows.Forms.TabPage tabGameSpeed;
+        private System.Windows.Forms.Button btn_readSpeed;
+        private System.Windows.Forms.Button btn_setSpeed;
+        private System.Windows.Forms.TextBox textBox_speed;
+        private System.Windows.Forms.Label label_speed;
+        private System.Windows.Forms.TabPage tabAbilities;
+        private System.Windows.Forms.CheckBox checkbox_infinite_run;
+        private System.Windows.Forms.CheckBox checkbox_fireproof;
+        private System.Windows.Forms.CheckBox checkbox_paynspray_free;
+        private System.Windows.Forms.Button btn_applyAbilities;
+    }
+}

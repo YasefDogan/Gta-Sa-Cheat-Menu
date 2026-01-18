@@ -1,0 +1,188 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Windows.Forms;
+
+// P/Invoke ve Memory Yönetimi için Statik Sınıf
+public static class MemoryHelper
+{
+    // kernel32.dll dari P/Invoke Deklarasyonları
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CloseHandle(IntPtr hObject);
+
+    // Sabitler
+    public const uint PROCESS_ALL_ACCESS = 0x1F0FFF;
+    public const uint PROCESS_VM_WRITE = 0x0020;
+    public const uint PROCESS_VM_READ = 0x0010;
+
+    // Bellek yazma fonksiyonu (Integer değer için)
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, int value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    // Bellek yazma fonksiyonu (Float değer için)
+    public static bool WriteMemory(IntPtr hProcess, IntPtr address, float value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, (uint)buffer.Length, out bytesWritten);
+    }
+
+    // Bellek okuma fonksiyonu (Integer değer için)
+    public static int ReadMemory(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToInt32(buffer, 0);
+    }
+}
+
+namespace cheat
+{
+    public partial class Form1 : Form
+    {
+        private IntPtr processHandle = IntPtr.Zero;
+        private int targetProcessId = -1;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Form yüklendiğinde bilgilendirme mesajı
+            MessageBox.Show(
+                "Bellek Manipülasyonu Demo\n\n" +
+                "- İşlemi bağlamak için: İşlem Adını yazın ve 'Bağlan' tıklayın\n" +
+                "- Belleği okumak için: 'Oku' tıklayın\n" +
+                "- Belleği yazmak için: Değer yazın ve 'Yaz' tıklayın\n\n" +
+                "Statik Adres: 0xB7CE50\n\n" +
+                "NOT: Admin haklarına ihtiyacınız olabilir!",
+                "Hoş Geldiniz"
+            );
+            UpdateStatus(false);
+        }
+
+        // Durum güncellemesi
+        private void UpdateStatus(bool connected)
+        {
+            if (connected)
+            {
+                statusLabel.Text = $"Durum: Bağlı ✓ (PID: {targetProcessId})";
+                statusLabel.ForeColor = System.Drawing.Color.Green;
+            }
+            else
+            {
+                statusLabel.Text = "Durum: Bağlı Değil ✗";
+                statusLabel.ForeColor = System.Drawing.Color.Red;
+            }
+        }
+
+        // ===== Butonlar ve Event Handlerlar =====
+
+        // Belleği okuyup messagebox'a yazma
+        private void ReadMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce bir işleme bağlanın!", "Hata");
+                return;
+            }
+
+            // 0xB7CE50 adresindeki değeri oku
+            IntPtr address = new IntPtr(0xB7CE50);
+            int value = MemoryHelper.ReadMemory(processHandle, address);
+            
+            MessageBox.Show($"Adres: 0xB7CE50\nOkunan Değer: {value}\n(Hex: 0x{value:X})", "Sonuç");
+        }
+
+        // Textbox'taki değeri belleğe yazma
+        private void WriteMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Lütfen önce bir işleme bağlanın!", "Hata");
+                return;
+            }
+
+            // Yazılacak değeri al
+            if (!int.TryParse(ValueTextBox.Text, out int newValue))
+            {
+                MessageBox.Show("Lütfen geçerli bir integer değeri giriniz!", "Hata");
+                return;
+            }
+
+            // 0xB7CE50 adresine yaz
+            IntPtr address = new IntPtr(0xB7CE50);
+            bool success = MemoryHelper.WriteMemory(processHandle, address, newValue);
+
+            if (success)
+            {
+                MessageBox.Show($"Yazma Başarılı!\nAdres: 0xB7CE50\nYeni Değer: {newValue} (0x{newValue:X})", "Başarılı");
+            }
+            else
+            {
+                MessageBox.Show("Yazma Başarısız! Hata: " + Marshal.GetLastWin32Error(), "Hata");
+            }
+        }
+
+        // İşleme bağlanma
+        private void ConnectBtn_Click(object sender, EventArgs e)
+        {
+            string processName = ProcessNameTextBox.Text.Trim();
+
+            if (string.IsNullOrEmpty(processName))
+            {
+                MessageBox.Show("Lütfen bir işlem adı giriniz!", "Hata");
+                return;
+            }
+
+            // Belirtilen işlemi bul
+            Process[] processes = Process.GetProcessesByName(processName.Replace(".exe", ""));
+
+            if (processes.Length == 0)
+            {
+                MessageBox.Show($"İşlem bulunamadı: {processName}", "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            // İlk eşleşen işleme bağlan
+            targetProcessId = processes[0].Id;
+            processHandle = MemoryHelper.OpenProcess(MemoryHelper.PROCESS_ALL_ACCESS, false, targetProcessId);
+
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("İşleme bağlanılamadı! Admin haklarına ihtiyacınız olabilir.\nHata Kodu: " + Marshal.GetLastWin32Error(), "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            MessageBox.Show($"Bağlanıldı!\nİşlem: {processes[0].ProcessName}\nPID: {targetProcessId}", "Başarılı");
+            UpdateStatus(true);
+        }
+
+        // Kaynakları temizleme
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (processHandle != IntPtr.Zero)
+            {
+                MemoryHelper.CloseHandle(processHandle);
+            }
+        }
+    }
+}

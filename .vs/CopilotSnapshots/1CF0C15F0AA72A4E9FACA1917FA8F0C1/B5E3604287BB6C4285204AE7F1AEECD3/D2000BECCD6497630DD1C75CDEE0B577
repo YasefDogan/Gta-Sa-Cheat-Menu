@@ -1,0 +1,33 @@
+﻿// (1) Buraya System.Runtime.InteropServices, System.Diagnostics using'lerini ekleyin
+using System;
+using System.Runtime.InteropServices; // <-- PInvoke için gerekli!
+using System.Diagnostics; // <-- Process.GetProcessesByName için gerekli!
+using System.Windows.Forms;
+
+// -------------------------------------------------------------------
+// (2) PInvoke Kodunu Buraya Yapıştırın (Memory Statik Sınıfı)
+// Form1 Sınıfının Dışında olmalıdır!
+public static class Memory
+{
+    [DllImport("kernel32.dll")]
+    // ... OpenProcess, WriteProcessMemory vb. kodları ...
+    public const int PROCESS_ALL_ACCESS = 0x1F0FFF;
+}
+// -------------------------------------------------------------------
+
+public partial class Form1 : Form
+{
+    public Form1()
+    {
+        InitializeComponent();
+        // ... Varsayılan değerler ...
+    }
+
+    // -------------------------------------------------------------------
+    // (3) Form Mantığı Kodunu Buraya Yapıştırın (btnWrite_Click Metodu)
+    private void btnWrite_Click(object sender, EventArgs e)
+    {
+        // ... İşlemi bulma, Handle alma, WriteProcessMemory çağırma kodları ...
+    }
+    // -------------------------------------------------------------------
+}

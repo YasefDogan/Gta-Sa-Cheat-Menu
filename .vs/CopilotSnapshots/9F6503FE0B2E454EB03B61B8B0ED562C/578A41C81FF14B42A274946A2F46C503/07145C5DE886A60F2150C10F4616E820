@@ -1,0 +1,411 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Drawing.Text;
+using System.IO;
+
+public static class MemoryHelper
+{
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CloseHandle(IntPtr hObject);
+
+    [DllImport("user32.dll")]
+    public static extern short GetAsyncKeyState(int vKey);
+
+    public const uint PROCESS_ALL_ACCESS = 0x1F0FFF;
+
+    // --- YAZMA METOTLARI ---
+    public static bool WriteMemoryByte(IntPtr hProcess, IntPtr address, byte value)
+    {
+        byte[] buffer = new byte[] { value };
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, 1, out bytesWritten);
+    }
+    public static bool WriteMemoryInt(IntPtr hProcess, IntPtr address, int value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, 4, out bytesWritten);
+    }
+    public static bool WriteMemoryFloat(IntPtr hProcess, IntPtr address, float value)
+    {
+        byte[] buffer = BitConverter.GetBytes(value);
+        IntPtr bytesWritten;
+        return WriteProcessMemory(hProcess, address, buffer, 4, out bytesWritten);
+    }
+
+    // --- OKUMA METOTLARI ---
+    public static int ReadMemoryInt(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToInt32(buffer, 0);
+    }
+    public static float ReadMemoryFloat(IntPtr hProcess, IntPtr address)
+    {
+        byte[] buffer = new byte[4];
+        IntPtr bytesRead;
+        ReadProcessMemory(hProcess, address, buffer, 4, out bytesRead);
+        return BitConverter.ToSingle(buffer, 0);
+    }
+}
+
+namespace cheat
+{
+    public partial class Form1 : Form
+    {
+        private PrivateFontCollection privateFonts = new PrivateFontCollection();
+        private readonly float fontScale = 1.3f;
+
+        private Timer keyTimer;
+        private Label lblDebug;
+
+        // Tuşun daha önce basılı olup olmadığını kontrol eden bayrak
+        private bool wasHPressedBefore = false;
+
+        private IntPtr processHandle = IntPtr.Zero;
+        private int targetProcessId = -1;
+        private const string TargetProcessName = "gta-sa";
+
+        // --- ADRESLER ---
+        private readonly IntPtr addr_Money = new IntPtr(0xB7CE50);
+        private readonly IntPtr addr_GameSpeed = new IntPtr(0xB7CB64);
+        private readonly IntPtr addr_InfiniteRun = new IntPtr(0xB7CEE4);
+        private readonly IntPtr addr_Fireproof = new IntPtr(0xB7CEE6);
+        private readonly IntPtr addr_PayNSprayFree = new IntPtr(0x96C009);
+
+        // Hile Adresleri [Byte]
+        private readonly IntPtr addr_Cheat_Weapon1 = new IntPtr(0x969130);
+        private readonly IntPtr addr_Cheat_Weapon2 = new IntPtr(0x969131);
+        private readonly IntPtr addr_Cheat_Weapon3 = new IntPtr(0x969132);
+        private readonly IntPtr addr_Cheat_HealthArmor = new IntPtr(0x969133);
+        private readonly IntPtr addr_Cheat_WantedUp = new IntPtr(0x969134);
+        private readonly IntPtr addr_Cheat_WantedClear = new IntPtr(0x969135);
+        private readonly IntPtr addr_Cheat_BlowCars = new IntPtr(0x96914A);
+        private readonly IntPtr addr_Cheat_Fat = new IntPtr(0x969154);
+        private readonly IntPtr addr_Cheat_Jetpack = new IntPtr(0x969170);
+
+        // Zamanlayıcılar
+        private readonly IntPtr addr_TaxiTimer = new IntPtr(0xA5197C);
+        private readonly IntPtr addr_TipBarTimer = new IntPtr(0xA51980);
+        private readonly IntPtr addr_ParamedicTimer = new IntPtr(0xA519A8);
+        private readonly IntPtr addr_FirefighterTimer = new IntPtr(0xA519BC);
+        private readonly IntPtr addr_VigilanteTimer = new IntPtr(0xA519D8);
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            this.Text = $"{Environment.UserName} - GTA:SA Mod Menüsü";
+            LoadCustomFontFromFile();
+            try { ApplyDarkTheme(); } catch { }
+
+            // DEBUG ETİKETİ
+            lblDebug = new Label();
+            lblDebug.AutoSize = true;
+            lblDebug.ForeColor = Color.Yellow;
+            lblDebug.Font = new Font("Arial", 12, FontStyle.Bold);
+            lblDebug.Location = new Point(350, 20);
+            lblDebug.Text = "F4 Tuş Durumu: BOŞTA"; // GÜNCELLENDİ
+            this.Controls.Add(lblDebug);
+            lblDebug.BringToFront();
+
+            // TUŞ DİNLEME (50ms)
+            keyTimer = new Timer();
+            keyTimer.Interval = 50;
+            keyTimer.Tick += KeyTimer_Tick;
+            keyTimer.Start();
+
+            UpdateStatus(false);
+            SetDefaultValues();
+        }
+
+        // ==================== YENİ MANTIK: F4 TUŞU (0x73) ====================
+        private void KeyTimer_Tick(object sender, EventArgs e)
+        {
+            // 0x73 = F4 Tuşu
+            short keyState = MemoryHelper.GetAsyncKeyState(0x73);
+
+            // Şu an basılı mı?
+            bool isDown = (keyState & 0x8000) > 0;
+
+            if (isDown)
+            {
+                // TUŞA BASILIYOR
+                lblDebug.Text = "F4 Tuş Durumu: BASILI (1)";
+                lblDebug.ForeColor = Color.Lime;
+
+                // Bağlantı varsa sürekli '1' gönder (Aktif tut)
+                if (processHandle != IntPtr.Zero)
+                {
+                    ApplyCheats(1);
+                }
+
+                // Bayrağı işaretle ki bırakınca 0 yapabilelim
+                wasHPressedBefore = true;
+            }
+            else
+            {
+                // TUŞ BIRAKILDI
+                if (wasHPressedBefore)
+                {
+                    // Tuştan elimizi yeni çektik!
+                    lblDebug.Text = "F4 Tuş Durumu: BIRAKILDI (0)";
+                    lblDebug.ForeColor = Color.Yellow;
+
+                    // Bağlantı varsa '0' gönder (Deaktif et)
+                    if (processHandle != IntPtr.Zero)
+                    {
+                        ApplyCheats(0);
+                    }
+
+                    // İşlem tamam, bayrağı indir
+                    wasHPressedBefore = false;
+                }
+            }
+        }
+
+        // Bu fonksiyon hem 1 (aktif) hem 0 (pasif) yazabilir
+        private void ApplyCheats(byte val)
+        {
+            // Sadece Checkbox'ı işaretli olanlara uygula
+            if (chk_weapon1.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_Weapon1, val);
+            if (chk_weapon2.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_Weapon2, val);
+            if (chk_weapon3.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_Weapon3, val);
+
+            if (chk_healtharmor.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_HealthArmor, val);
+
+            if (chk_wantedUp.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_WantedUp, val);
+            if (chk_wantedClear.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_WantedClear, val);
+
+            if (chk_blowCars.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_BlowCars, val);
+            if (chk_fat.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_Fat, val);
+            if (chk_jetpack.Checked) MemoryHelper.WriteMemoryByte(processHandle, addr_Cheat_Jetpack, val);
+        }
+        // ==============================================================================
+
+        private void SetDefaultValues()
+        {
+            try
+            {
+                textBox_taxiTimer.Text = "60";
+                textBox_tipBarTimer.Text = "10";
+                textBox_paramedicTimer.Text = "60";
+                textBox_firefighterTimer.Text = "60";
+                textBox_vigilanteTimer.Text = "60";
+                textBox_speed.Text = "1";
+            }
+            catch { }
+        }
+
+        private void LoadCustomFontFromFile()
+        {
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string fontPath = Path.Combine(baseDir, "Properties", "font.ttf");
+                if (!File.Exists(fontPath)) fontPath = Path.Combine(baseDir, "font.ttf");
+
+                if (File.Exists(fontPath))
+                {
+                    privateFonts.AddFontFile(fontPath);
+                    if (privateFonts.Families.Length > 0)
+                    {
+                        FontFamily ff = privateFonts.Families[0];
+                        using (Font newFont = new Font(ff, this.Font.Size, FontStyle.Regular))
+                        {
+                            ApplyFontToControl(this, newFont);
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void ApplyFontToControl(Control control, Font font)
+        {
+            if (control == null || font == null) return;
+            bool alreadyApplied = control.Font != null && control.Font.FontFamily.Name == font.FontFamily.Name;
+            if (!alreadyApplied)
+            {
+                float origSize = control.Font != null ? control.Font.Size : font.Size;
+                control.Font = new Font(font.FontFamily, Math.Max(6f, origSize * fontScale), FontStyle.Regular);
+            }
+            if (control.ContextMenuStrip != null)
+            {
+                foreach (ToolStripItem item in control.ContextMenuStrip.Items)
+                    item.Font = new Font(font.FontFamily, Math.Max(6f, item.Font.Size * fontScale), item.Font.Style);
+            }
+            foreach (Control child in control.Controls) ApplyFontToControl(child, font);
+        }
+
+        private void ApplyDarkTheme()
+        {
+            Color backColor = Color.Black;
+            Color foreColor = Color.White;
+            Color boxColor = Color.FromArgb(30, 30, 30);
+            this.BackColor = backColor;
+            this.ForeColor = foreColor;
+            foreach (Control c in this.Controls) ApplyThemeToControlTheme(c, backColor, foreColor, boxColor);
+        }
+
+        private void ApplyThemeToControlTheme(Control control, Color back, Color fore, Color box)
+        {
+            if (control == null) return;
+            if (control == lblDebug) return;
+
+            if (control is Panel || control is GroupBox || control is TabPage || control is TabControl || control is FlowLayoutPanel)
+                try { control.BackColor = back; } catch { }
+
+            if (control is Label || control is CheckBox || control is RadioButton || control is GroupBox)
+                try { control.ForeColor = fore; } catch { }
+            else if (control is Button)
+                try { control.BackColor = back; control.ForeColor = fore; } catch { }
+            else if (control is TextBox)
+                try { control.BackColor = box; control.ForeColor = fore; } catch { }
+            else if (control is TabControl tc)
+                try { tc.BackColor = back; tc.ForeColor = fore; foreach (TabPage tp in tc.TabPages) { tp.BackColor = back; tp.ForeColor = fore; } } catch { }
+
+            foreach (Control child in control.Controls) ApplyThemeToControlTheme(child, back, fore, box);
+        }
+
+        private void UpdateStatus(bool connected)
+        {
+            if (connected)
+            {
+                statusLabel.Text = $"Durum: Bağlı ✓ (PID: {targetProcessId})";
+                statusLabel.ForeColor = Color.Green;
+            }
+            else
+            {
+                statusLabel.Text = "Durum: Bağlı Değil ✗";
+                statusLabel.ForeColor = Color.Red;
+            }
+        }
+
+        private void chk_weapon1_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_weapon2_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_weapon3_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_healtharmor_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_wantedUp_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_wantedClear_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_blowCars_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_fat_CheckedChanged(object sender, EventArgs e) { }
+        private void chk_jetpack_CheckedChanged(object sender, EventArgs e) { }
+
+        private void ReadMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero) { MessageBox.Show("Önce bağlanın!"); return; }
+            int value = MemoryHelper.ReadMemoryInt(processHandle, addr_Money);
+            MessageBox.Show($"Mevcut Para: {value:N0}", "Sonuç");
+        }
+
+        private void WriteMemoryBtn_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero) { MessageBox.Show("Önce bağlanın!"); return; }
+            if (int.TryParse(textBox_money.Text, out int newValue))
+            {
+                MemoryHelper.WriteMemoryInt(processHandle, addr_Money, newValue);
+                MessageBox.Show("Para Başarıyla Yazıldı!", "Başarılı");
+            }
+        }
+
+        private void btn_readSpeed_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero) return;
+            float percent = MemoryHelper.ReadMemoryFloat(processHandle, addr_GameSpeed);
+            MessageBox.Show($"Oyun Hızı: x{percent / 100f}", "Sonuç");
+        }
+
+        private void btn_setSpeed_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero) return;
+            if (float.TryParse(textBox_speed.Text, out float multiplier))
+            {
+                MemoryHelper.WriteMemoryFloat(processHandle, addr_GameSpeed, multiplier * 100f);
+                MessageBox.Show("Hız Ayarlandı", "Başarılı");
+            }
+        }
+
+        private void btn_applyAbilities_Click(object sender, EventArgs e)
+        {
+            if (processHandle == IntPtr.Zero) return;
+            MemoryHelper.WriteMemoryByte(processHandle, addr_InfiniteRun, checkbox_infinite_run.Checked ? (byte)1 : (byte)0);
+            MemoryHelper.WriteMemoryByte(processHandle, addr_Fireproof, checkbox_fireproof.Checked ? (byte)1 : (byte)0);
+            MemoryHelper.WriteMemoryByte(processHandle, addr_PayNSprayFree, checkbox_paynspray_free.Checked ? (byte)1 : (byte)0);
+            MessageBox.Show("Yetenekler Güncellendi!", "Bilgi");
+        }
+
+        private void ReadTimer(IntPtr addr, string name)
+        {
+            if (processHandle == IntPtr.Zero) return;
+            int val = MemoryHelper.ReadMemoryInt(processHandle, addr);
+            MessageBox.Show($"{name}: {val / 1000} saniye", "Bilgi");
+        }
+        private void SetTimer(IntPtr addr, string text)
+        {
+            if (processHandle == IntPtr.Zero) return;
+            if (int.TryParse(text, out int sec))
+            {
+                MemoryHelper.WriteMemoryInt(processHandle, addr, sec * 1000);
+                MessageBox.Show("Süre Ayarlandı!", "Başarılı");
+            }
+        }
+
+        private void btn_readTaxi_Click(object sender, EventArgs e) { ReadTimer(addr_TaxiTimer, "Taxi"); }
+        private void btn_setTaxi_Click(object sender, EventArgs e) { SetTimer(addr_TaxiTimer, textBox_taxiTimer.Text); }
+        private void btn_readTipBar_Click(object sender, EventArgs e) { ReadTimer(addr_TipBarTimer, "TipBar"); }
+        private void btn_setTipBar_Click(object sender, EventArgs e) { SetTimer(addr_TipBarTimer, textBox_tipBarTimer.Text); }
+        private void btn_readParamedic_Click(object sender, EventArgs e) { ReadTimer(addr_ParamedicTimer, "Paramedic"); }
+        private void btn_setParamedic_Click(object sender, EventArgs e) { SetTimer(addr_ParamedicTimer, textBox_paramedicTimer.Text); }
+        private void btn_readFirefighter_Click(object sender, EventArgs e) { ReadTimer(addr_FirefighterTimer, "Firefighter"); }
+        private void btn_setFirefighter_Click(object sender, EventArgs e) { SetTimer(addr_FirefighterTimer, textBox_firefighterTimer.Text); }
+        private void btn_readVigilante_Click(object sender, EventArgs e) { ReadTimer(addr_VigilanteTimer, "Vigilante"); }
+        private void btn_setVigilante_Click(object sender, EventArgs e) { SetTimer(addr_VigilanteTimer, textBox_vigilanteTimer.Text); }
+
+        private void ConnectBtn_Click(object sender, EventArgs e)
+        {
+            Process[] processes = Process.GetProcessesByName(TargetProcessName);
+            if (processes.Length == 0)
+            {
+                MessageBox.Show($"GTA:SA Açık Değil! ({TargetProcessName}.exe bulunamadı)", "Hata");
+                UpdateStatus(false);
+                return;
+            }
+
+            targetProcessId = processes[0].Id;
+            processHandle = MemoryHelper.OpenProcess(MemoryHelper.PROCESS_ALL_ACCESS, false, targetProcessId);
+
+            if (processHandle == IntPtr.Zero)
+            {
+                MessageBox.Show("Bağlanılamadı! Lütfen programı Yönetici Olarak Çalıştırın.", "Erişim Hatası");
+                UpdateStatus(false);
+                return;
+            }
+
+            MessageBox.Show("Başarıyla Bağlanıldı!", "Başarılı");
+            UpdateStatus(true);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (processHandle != IntPtr.Zero) MemoryHelper.CloseHandle(processHandle);
+            try { privateFonts.Dispose(); } catch { }
+        }
+    }
+}
