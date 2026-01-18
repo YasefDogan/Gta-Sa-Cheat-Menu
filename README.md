@@ -1,5 +1,5 @@
 
-##Kurulum ve Kullanım
+## Kurulum ve Kullanım
 
 ZIP dosyasını çıkartın.
 
@@ -12,7 +12,7 @@ Bağlantı sağlandıktan sonra menü üzerinden yapacağınız değişiklikler 
 Not: Programın düzgün çalışabilmesi için oyunun açık olması gerekmektedir.
 
 
-#Installation and Usage
+# Installation and Usage
 
 Extract the ZIP file.
 
