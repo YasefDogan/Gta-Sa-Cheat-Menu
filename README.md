@@ -1,25 +1,23 @@
 
 ## Kurulum ve Kullanım
 
-ZIP dosyasını çıkartın.
+1)ZIP dosyasını çıkartın.
 
-Cheat.exe dosyasını çalıştırın.
+2)Cheat.exe dosyasını çalıştırın.
 
-Program açıldıktan sonra “Oyuna Bağlan” seçeneğini seçin.
+3)Program açıldıktan sonra “Oyuna Bağlan” seçeneğini seçin.
 
-Bağlantı sağlandıktan sonra menü üzerinden yapacağınız değişiklikler oyununuzu anında etkileyecektir.
+4)Bağlantı sağlandıktan sonra menü üzerinden yapacağınız değişiklikler oyununuzu anında etkileyecektir.
 
-Not: Programın düzgün çalışabilmesi için oyunun açık olması gerekmektedir.
 
 
 # Installation and Usage
 
-Extract the ZIP file.
+1)Extract the ZIP file.
 
-Run Cheat.exe.
+2)Run Cheat.exe.
 
-After the program starts, select “Connect to Game”.
+3)After the program starts, select “Connect to Game”.
 
-Once connected, any changes you make through the menu will directly affect the game.
+4)Once connected, any changes you make through the menu will directly affect the game.
 
-Note: The game must be running for the program to work properly.
