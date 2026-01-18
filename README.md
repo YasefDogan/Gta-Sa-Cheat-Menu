@@ -1,7 +1,7 @@
 ## Kurulum ve Kullanım
 
 1)GitHub Releases bölümüne gidin ve en son sürümü indirin:
-👉 [Releases]()
+👉 [Releases](https://github.com/YasefDogan/Gta-Sa-Cheat-Menu/releases)
 
 2)ZIP dosyasını çıkartın.
 
@@ -14,7 +14,7 @@
 ## Installation and Usage
 
 1)Go to the GitHub Releases page and download the latest version:
-👉 [Releases]()
+👉 [Releases](https://github.com/YasefDogan/Gta-Sa-Cheat-Menu/releases)
 
 2)Extract the ZIP file.
 
